@@ -1,0 +1,31 @@
+# Environments
+.env
+.venv
+env/
+venv/
+
+# Byte-code files
+*.pyc
+__pycache__/
+
+# Instance folder (contains configuration and database files)
+instance/
+
+# Flask-specific files
+.flaskenv
+
+# Test-related files
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Distribution and build artifacts
+dist/
+build/
+*.egg-info/
+
+# Editor/IDE specific files
+.vscode/
+.idea/
+*.swp
+*~

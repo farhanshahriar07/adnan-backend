@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans transition-colors duration-300"
+      x-data="{ 
+          currentTab: '{{ active_tab }}',
+          darkMode: localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
+          unreadCount: {{ unread_count }},
+          viewMessage: null,
+          
+          async openMessage(msg) {
+              this.viewMessage = msg;
+              if (!msg.read) {
+                  msg.read = true;
+                  this.unreadCount = Math.max(0, this.unreadCount - 1);
+                  try {
+                    await fetch(`/api/message/read/${msg.id}`, { method: 'POST' });
+                  } catch(e) { console.error(e); }
+              }
+          }
+      }"
+      x-init="$watch('darkMode', val => {
+          localStorage.setItem('theme', val ? 'dark' : 'light');
+          document.documentElement.classList.toggle('dark', val);
+      });
+      $watch('currentTab', val => {
+          const url = new URL(window.location);
+          url.searchParams.set('tab', val);
+          window.history.replaceState({}, '', url);
+      });
+      document.documentElement.classList.toggle('dark', darkMode);"
+>
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 hidden md:flex flex-col transition-colors duration-300">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h1 class="text-xl font-bold text-gray-800 dark:text-white tracking-wider">PORTFOLIO CMS</h1>
+            </div>
+            
+            <div class="px-6 py-4">
+                <button @click="darkMode = !darkMode" class="w-full flex items-center justify-between p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                    <span x-text="darkMode ? 'Dark Mode' : 'Light Mode'" class="font-medium text-sm"></span>
+                    <i :class="darkMode ? 'fas fa-moon' : 'fas fa-sun'" class="text-yellow-500"></i>
+                </button>
+            </div>
+
+            <nav class="flex-1 p-4 space-y-2">
+                {% for tab_id, icon, label in [
+                    ('about', 'fa-user', 'About Me'),
+                    ('skills', 'fa-code', 'Skills'),
+                    ('education', 'fa-graduation-cap', 'Education'),
+                    ('experience', 'fa-briefcase', 'Experience'),
+                    ('projects', 'fa-project-diagram', 'Projects'),
+                    ('thesis', 'fa-book', 'Thesis')
+                ] %}
+                <button @click="currentTab = '{{ tab_id }}'" :class="currentTab === '{{ tab_id }}' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'" class="w-full flex items-center p-3 rounded-lg transition-all">
+                    <i class="fas {{ icon }} w-6"></i> {{ label }}
+                </button>
+                {% endfor %}
+                
+                <button @click="currentTab = 'messages'" :class="currentTab === 'messages' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'" class="w-full flex items-center p-3 rounded-lg transition-all justify-between">
+                    <div class="flex items-center"><i class="fas fa-envelope w-6"></i> Messages</div>
+                    <span x-show="unreadCount > 0" x-text="unreadCount" class="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full"></span>
+                </button>
+            </nav>
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                <a href="{{ url_for('logout') }}" class="w-full flex items-center justify-center p-2 text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition">
+                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-4 md:p-8 transition-colors duration-300 relative">
+            
+            <!-- Mobile Header & Toggle -->
+            <div class="md:hidden mb-6 flex flex-col gap-4">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-xl font-bold text-gray-800 dark:text-white">PORTFOLIO CMS</h1>
+                    <button @click="darkMode = !darkMode" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-yellow-400">
+                        <i :class="darkMode ? 'fas fa-moon' : 'fas fa-sun'"></i>
+                    </button>
+                </div>
+                <select x-model="currentTab" class="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 rounded p-2 w-full">
+                    <option value="about">About</option>
+                    <option value="skills">Skills</option>
+                    <option value="education">Education</option>
+                    <option value="experience">Experience</option>
+                    <option value="projects">Projects</option>
+                    <option value="thesis">Thesis</option>
+                    <option value="messages">Messages</option>
+                </select>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with msgs = get_flashed_messages() %}
+                {% if msgs %}
+                    <div class="mb-6 bg-green-100 dark:bg-green-900/50 border border-green-400 dark:border-green-600 text-green-800 dark:text-green-200 px-4 py-3 rounded relative">
+                        {{ msgs[0] }}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- MESSAGES SECTION -->
+            <div x-show="currentTab === 'messages'" x-cloak>
+                <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">Inbox</h2>
+                <div class="grid gap-4">
+                    {% if messages %}
+                        {% for msg in messages %}
+                        <div x-data="{ read: {{ 'true' if msg.read else 'false' }}, id: {{ msg.id }} }" 
+                             @click="openMessage({ id: {{ msg.id }}, name: '{{ msg.name|e }}', email: '{{ msg.email|e }}', subject: '{{ msg.subject|e }}', message: `{{ msg.message|e }}`, timestamp: '{{ msg.timestamp.strftime('%Y-%m-%d %H:%M') }}', read: read }); read = true"
+                             class="cursor-pointer bg-white dark:bg-gray-800 rounded-lg p-6 border-l-4 shadow-sm hover:shadow-md transition-all duration-200"
+                             :class="read ? 'border-gray-300 dark:border-gray-600 opacity-80' : 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20'">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h3 class="font-bold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                                        {{ msg.name }}
+                                        <span x-show="!read" class="bg-blue-500 w-2 h-2 rounded-full inline-block"></span>
+                                    </h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ msg.email }}</p>
+                                </div>
+                                <span class="text-xs text-gray-500 dark:text-gray-500">{{ msg.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+                            </div>
+                            <div class="p-2 rounded mb-2 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40">
+                                <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Subject:</span>
+                                <span class="text-gray-800 dark:text-gray-200 ml-1 font-medium">{{ msg.subject }}</span>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-300 mt-2 truncate">{{ msg.message }}</p>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-20 text-gray-400 dark:text-gray-500">
+                            <i class="fas fa-inbox text-4xl mb-4"></i>
+                            <p>No messages yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Message Modal -->
+            <div x-show="viewMessage" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl w-full max-w-2xl transform transition-all border border-gray-200 dark:border-gray-700" @click.away="viewMessage = null">
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4 border-b border-gray-200 dark:border-gray-700 pb-4">
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-900 dark:text-white" x-text="viewMessage?.subject"></h3>
+                                <div class="mt-2 text-sm text-gray-500 dark:text-gray-400 flex flex-col">
+                                    <span>From: <strong class="text-gray-700 dark:text-gray-300" x-text="viewMessage?.name"></strong> (<span x-text="viewMessage?.email"></span>)</span>
+                                    <span x-text="viewMessage?.timestamp"></span>
+                                </div>
+                            </div>
+                            <button @click="viewMessage = null" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                <i class="fas fa-times text-xl"></i>
+                            </button>
+                        </div>
+                        <div class="prose dark:prose-invert max-w-none text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-relaxed" x-text="viewMessage?.message"></div>
+                        <div class="mt-8 flex justify-end">
+                             <a :href="'mailto:' + viewMessage?.email" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2">
+                                <i class="fas fa-reply"></i> Reply via Email
+                             </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABOUT SECTION -->
+            <div x-show="currentTab === 'about'" x-cloak>
+                <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">Edit Profile</h2>
+                <form action="{{ url_for('update_about') }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm dark:shadow-lg transition-colors">
+                    
+                    <!-- Basic Info -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        {% for field in ['name', 'birthday', 'email', 'phone', 'website', 'city', 'degree', 'freelance_status'] %}
+                        <div>
+                            <label class="block text-gray-600 dark:text-gray-400 text-sm font-bold mb-2 capitalize">{{ field.replace('_', ' ') }}</label>
+                            <input type="text" name="{{ field }}" value="{{ about[field] or '' if about else '' }}" 
+                                   class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors">
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Social Profiles (NEW) -->
+                    <h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">Social Profiles</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        {% for social, icon in [('github', 'fab fa-github'), ('facebook', 'fab fa-facebook'), ('linkedin', 'fab fa-linkedin'), ('whatsapp', 'fab fa-whatsapp'), ('instagram', 'fab fa-instagram'), ('twitter', 'fab fa-twitter')] %}
+                        <div>
+                            <label class="block text-gray-600 dark:text-gray-400 text-sm font-bold mb-2 capitalize">
+                                <i class="{{ icon }} mr-1"></i> {{ social }} URL
+                            </label>
+                            <input type="text" name="{{ social }}" value="{{ about[social] or '' if about else '' }}" 
+                                   placeholder="https://..."
+                                   class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-gray-600 dark:text-gray-400 text-sm font-bold mb-2">Short Bio</label>
+                        <textarea name="short_bio" rows="2" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors">{{ about.short_bio or '' if about else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-600 dark:text-gray-400 text-sm font-bold mb-2">Long Bio (HTML allowed)</label>
+                        <textarea name="long_bio" rows="6" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors">{{ about.long_bio or '' if about else '' }}</textarea>
+                    </div>
+
+                    <!-- IMAGE PICKER COMPONENT -->
+                    <div x-data="{ imgUrl: '{{ about.profile_image or '' if about else '' }}' }" class="mb-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                         <label class="block text-gray-600 dark:text-gray-400 text-sm font-bold mb-2">Profile Image</label>
+                         
+                         <div class="flex flex-col md:flex-row gap-4 items-start">
+                             <div class="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0 border border-gray-300 dark:border-gray-600">
+                                 <img x-show="imgUrl" :src="imgUrl" class="w-full h-full object-cover">
+                                 <div x-show="!imgUrl" class="w-full h-full flex items-center justify-center text-gray-400"><i class="fas fa-image"></i></div>
+                             </div>
+
+                             <div class="flex-1 w-full space-y-3">
+                                 <input type="hidden" name="profile_image" x-model="imgUrl">
+                                 <input type="file" name="image_file" accept="image/*" class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-200 dark:hover:file:bg-blue-800 transition-colors"/>
+                                 <select @change="imgUrl = $event.target.value" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm">
+                                     <option value="">Select Previous Image...</option>
+                                     {% for url in image_history %}
+                                        <option value="{{ url }}">{{ url }}</option>
+                                     {% endfor %}
+                                 </select>
+                                 <input type="text" x-model="imgUrl" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm" placeholder="Or paste image URL...">
+                             </div>
+                         </div>
+                    </div>
+
+                    <!-- RESUME PICKER -->
+                    <div x-data="{ resumeUrl: '{{ about.resume_link or '' if about else '' }}' }" class="mb-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                         <label class="block text-gray-600 dark:text-gray-400 text-sm font-bold mb-2">Resume PDF</label>
+                         
+                         <div class="space-y-3">
+                             <div class="flex gap-2">
+                                <input type="text" name="resume_link" x-model="resumeUrl" class="w-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm" placeholder="Link to Resume (or upload below)">
+                                <a x-show="resumeUrl" :href="resumeUrl" target="_blank" class="flex-shrink-0 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-2 rounded text-sm flex items-center hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors">
+                                    <i class="fas fa-external-link-alt mr-1"></i> View
+                                </a>
+                             </div>
+                             
+                             <input type="file" name="resume_file" accept=".pdf" class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-200 dark:hover:file:bg-blue-800 transition-colors"/>
+                             <p class="text-xs text-gray-500 dark:text-gray-400">Upload a PDF file to update your resume.</p>
+                         </div>
+                    </div>
+
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded shadow-lg transition">Save Changes</button>
+                </form>
+            </div>
+
+            <!-- SKILLS SECTION -->
+            <div x-show="currentTab === 'skills'" x-cloak>
+                <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">Skills</h2>
+                <form action="{{ url_for('add_skill') }}" method="POST" class="bg-white dark:bg-gray-800 p-4 rounded-lg mb-6 flex flex-col md:flex-row gap-4 items-end shadow-sm dark:shadow-md transition-colors">
+                    <div class="w-full">
+                        <label class="block text-gray-600 dark:text-gray-400 text-xs font-bold mb-1">Skill Name</label>
+                        <input type="text" name="name" placeholder="e.g. Python" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                    </div>
+                    <div class="w-full md:w-32">
+                        <label class="block text-gray-600 dark:text-gray-400 text-xs font-bold mb-1">Percentage %</label>
+                        <input type="number" name="percentage" min="0" max="100" placeholder="90" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                    </div>
+                    <button type="submit" class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"><i class="fas fa-plus"></i> Add</button>
+                </form>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for skill in skills %}
+                    <div x-data="{ editing: false }" class="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm transition-colors">
+                        <div x-show="!editing" class="flex justify-between items-center">
+                            <div>
+                                <h3 class="font-bold text-lg text-gray-900 dark:text-white">{{ skill.name }}</h3>
+                                <div class="w-48 bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 mt-2">
+                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ skill.percentage }}%"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span class="text-blue-500 dark:text-blue-400 font-bold">{{ skill.percentage }}%</span>
+                                <button @click="editing = true" class="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"><i class="fas fa-pencil-alt"></i></button>
+                                <a href="{{ url_for('delete_skill', id=skill.id) }}" class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </div>
+                        <form x-show="editing" action="/edit/skill/{{ skill.id }}" method="POST" class="flex flex-col md:flex-row gap-2 items-center w-full">
+                            <input type="text" name="name" value="{{ skill.name }}" class="flex-1 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm w-full" required>
+                            <input type="number" name="percentage" value="{{ skill.percentage }}" min="0" max="100" class="w-full md:w-20 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm" required>
+                            <div class="flex gap-2 w-full md:w-auto justify-end">
+                                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white p-2 rounded text-sm transition-colors"><i class="fas fa-check"></i></button>
+                                <button type="button" @click="editing = false" class="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded text-sm transition-colors"><i class="fas fa-times"></i></button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- PROJECTS SECTION -->
+            <div x-show="currentTab === 'projects'" x-cloak>
+                <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">Projects</h2>
+                
+                <form action="{{ url_for('add_project') }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 p-6 rounded-lg mb-6 shadow-sm dark:shadow-md transition-colors">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <input type="text" name="title" placeholder="Project Title" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                        <input type="text" name="category" placeholder="Category (e.g., App, Web)" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">
+                        <input type="text" name="project_link" placeholder="Project URL" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">
+                        
+                        <!-- ADD PROJECT IMAGE PICKER (FIXED) -->
+                        <div x-data="{ imgUrl: '' }" class="md:col-span-2 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                             <label class="block text-gray-600 dark:text-gray-400 text-sm font-bold mb-2">Project Image</label>
+                             <div class="flex flex-col md:flex-row gap-4 items-start">
+                                 <div class="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0 border border-gray-300 dark:border-gray-600">
+                                     <img x-show="imgUrl" :src="imgUrl" class="w-full h-full object-cover">
+                                     <div x-show="!imgUrl" class="w-full h-full flex items-center justify-center text-gray-400"><i class="fas fa-image"></i></div>
+                                 </div>
+                                 <div class="flex-1 w-full space-y-3">
+                                     <!-- Hidden input for URL -->
+                                     <input type="hidden" name="image_url" x-model="imgUrl">
+                                     
+                                     <!-- File Upload (Styled) -->
+                                     <input type="file" name="image_file" accept="image/*" class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-200 dark:hover:file:bg-blue-800 transition-colors"/>
+                                     
+                                     <!-- Dropdown -->
+                                     <select @change="imgUrl = $event.target.value" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm">
+                                         <option value="">Select Previous Image...</option>
+                                         {% for url in image_history %}
+                                            <option value="{{ url }}">{{ url }}</option>
+                                         {% endfor %}
+                                     </select>
+                                     
+                                     <!-- Manual URL -->
+                                     <input type="text" x-model="imgUrl" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm" placeholder="Or paste image URL...">
+                                 </div>
+                             </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"><i class="fas fa-plus"></i> Add Project</button>
+                </form>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {% for proj in projects %}
+                    <div x-data="{ editing: false }" class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm transition-colors group">
+                        
+                        <div x-show="!editing">
+                            <div class="h-40 bg-gray-200 dark:bg-gray-700 bg-cover bg-center" style="background-image: url('{{ proj.image_url }}');">
+                                {% if not proj.image_url %}
+                                <div class="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500"><i class="fas fa-image text-3xl"></i></div>
+                                {% endif %}
+                            </div>
+                            <div class="p-4">
+                                <h3 class="font-bold text-xl text-gray-900 dark:text-white">{{ proj.title }}</h3>
+                                <span class="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 text-xs px-2 py-1 rounded mt-1">{{ proj.category }}</span>
+                                <div class="mt-4 flex justify-between items-center">
+                                    <a href="{{ proj.project_link }}" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline text-sm">View Project</a>
+                                    <div class="flex gap-2">
+                                        <button @click="editing = true" class="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"><i class="fas fa-pencil-alt"></i></button>
+                                        <a href="{{ url_for('delete_project', id=proj.id) }}" class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"><i class="fas fa-trash"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form x-show="editing" action="/edit/project/{{ proj.id }}" method="POST" enctype="multipart/form-data" class="p-4 flex flex-col gap-2">
+                             <input type="text" name="title" value="{{ proj.title }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm" required>
+                             <input type="text" name="category" value="{{ proj.category }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm">
+                             <input type="text" name="project_link" value="{{ proj.project_link }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm">
+                             
+                             <!-- EDIT PROJECT IMAGE PICKER (FIXED) -->
+                             <div x-data="{ imgUrl: '{{ proj.image_url }}' }" class="border border-gray-200 dark:border-gray-700 rounded p-2">
+                                 <label class="block text-gray-500 dark:text-gray-400 text-xs font-bold mb-1">Image</label>
+                                 <input type="hidden" name="image_url" x-model="imgUrl">
+                                 
+                                 <div class="flex gap-2 mb-2">
+                                     <input type="text" x-model="imgUrl" class="w-1/2 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-1 text-xs" placeholder="URL">
+                                     <select @change="imgUrl = $event.target.value" class="w-1/2 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-1 text-xs">
+                                         <option value="">History...</option>
+                                         {% for url in image_history %}
+                                            <option value="{{ url }}">{{ url }}</option>
+                                         {% endfor %}
+                                     </select>
+                                 </div>
+                                 <input type="file" name="image_file" accept="image/*" class="text-xs text-gray-500 dark:text-gray-400"/>
+                             </div>
+
+                             <div class="flex justify-end gap-2 mt-2">
+                                <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded text-sm">Save</button>
+                                <button type="button" @click="editing = false" class="bg-gray-500 text-white px-3 py-1 rounded text-sm">Cancel</button>
+                             </div>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- THESIS SECTION -->
+            <div x-show="currentTab === 'thesis'" x-cloak>
+                <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">Thesis</h2>
+                
+                 <form action="{{ url_for('add_thesis') }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 p-6 rounded-lg mb-6 shadow-sm dark:shadow-md transition-colors">
+                    <div class="grid grid-cols-1 gap-4 mb-4">
+                        <input type="text" name="title" placeholder="Thesis Title" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                        <div class="grid grid-cols-2 gap-4">
+                            <input type="text" name="publication_date" placeholder="Date/Year" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-600 dark:text-gray-400 text-xs font-bold mb-1">Thesis PDF (Upload or Link)</label>
+                            <input type="file" name="thesis_pdf" accept=".pdf,image/*" class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-200 dark:hover:file:bg-blue-800 mb-2"/>
+                            <input type="text" name="link" placeholder="Or paste external link" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 w-full">
+                        </div>
+
+                        <textarea name="description" placeholder="Abstract or Description" rows="3" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2"></textarea>
+                    </div>
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"><i class="fas fa-plus"></i> Add Thesis</button>
+                </form>
+
+                <div class="space-y-4">
+                    {% for thesis in theses %}
+                    <div x-data="{ editing: false }" class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 relative shadow-sm transition-colors">
+                        
+                        <div x-show="!editing">
+                            <div class="absolute top-4 right-4 flex gap-3">
+                                <button @click="editing = true" class="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"><i class="fas fa-pencil-alt"></i></button>
+                                <a href="{{ url_for('delete_thesis', id=thesis.id) }}" class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"><i class="fas fa-trash"></i></a>
+                            </div>
+                            <h3 class="font-bold text-xl text-gray-900 dark:text-white mb-2 pr-16">{{ thesis.title }}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ thesis.publication_date }}</p>
+                            <p class="text-gray-700 dark:text-gray-300 mb-4">{{ thesis.description }}</p>
+                            {% if thesis.link %}
+                            <a href="{{ thesis.link }}" target="_blank" class="inline-block border border-blue-500 text-blue-600 dark:text-blue-400 px-4 py-2 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30 transition">
+                                {% if '.pdf' in thesis.link %}
+                                    <i class="fas fa-file-pdf mr-2"></i>View PDF
+                                {% else %}
+                                    Read Publication
+                                {% endif %}
+                            </a>
+                            {% endif %}
+                        </div>
+
+                        <form x-show="editing" action="/edit/thesis/{{ thesis.id }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-3">
+                            <input type="text" name="title" value="{{ thesis.title }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                            <input type="text" name="publication_date" value="{{ thesis.publication_date }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">
+                            
+                            <div class="border border-gray-200 dark:border-gray-700 rounded p-2">
+                                <label class="block text-gray-500 dark:text-gray-400 text-xs font-bold mb-1">Thesis File (PDF/Image) or Link</label>
+                                <input type="text" name="link" value="{{ thesis.link }}" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm mb-2" placeholder="External Link">
+                                <input type="file" name="thesis_pdf" accept=".pdf,image/*" class="text-xs text-gray-500 dark:text-gray-400"/>
+                            </div>
+
+                            <textarea name="description" rows="3" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">{{ thesis.description }}</textarea>
+                            <div class="flex justify-end gap-2">
+                                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Save</button>
+                                <button type="button" @click="editing = false" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+                            </div>
+                        </form>
+
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- EDUCATION SECTION -->
+            <div x-show="currentTab === 'education'" x-cloak>
+                 <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">Education</h2>
+                 <form action="{{ url_for('add_education') }}" method="POST" class="bg-white dark:bg-gray-800 p-6 rounded-lg mb-6 shadow-sm dark:shadow-md transition-colors">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <input type="text" name="degree" placeholder="Degree" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                        <input type="text" name="institution" placeholder="Institution" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                        <input type="text" name="year_range" placeholder="Year Range (e.g. 2019-2023)" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">
+                        <textarea name="description" placeholder="Description" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 md:col-span-2"></textarea>
+                    </div>
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"><i class="fas fa-plus"></i> Add Education</button>
+                </form>
+                <div class="space-y-4">
+                    {% for edu in education %}
+                    <div x-data="{ editing: false }" class="bg-white dark:bg-gray-800 p-4 rounded-lg border-l-4 border-purple-500 shadow-sm transition-colors">
+                        <div x-show="!editing" class="flex justify-between">
+                            <div>
+                                <h3 class="font-bold text-lg text-gray-900 dark:text-white">{{ edu.degree }}</h3>
+                                <p class="text-purple-600 dark:text-purple-300">{{ edu.institution }} <span class="text-gray-500 dark:text-gray-500 text-sm">| {{ edu.year_range }}</span></p>
+                                <p class="text-gray-600 dark:text-gray-400 mt-2 text-sm">{{ edu.description }}</p>
+                            </div>
+                            <div class="flex flex-col gap-2 pl-4">
+                                <button @click="editing = true" class="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"><i class="fas fa-pencil-alt"></i></button>
+                                <a href="{{ url_for('delete_education', id=edu.id) }}" class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </div>
+                        <form x-show="editing" action="/edit/education/{{ edu.id }}" method="POST" class="flex flex-col gap-2">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <input type="text" name="degree" value="{{ edu.degree }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                                <input type="text" name="institution" value="{{ edu.institution }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                            </div>
+                            <input type="text" name="year_range" value="{{ edu.year_range }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">
+                            <textarea name="description" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">{{ edu.description }}</textarea>
+                            <div class="flex justify-end gap-2">
+                                <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded text-sm">Save</button>
+                                <button type="button" @click="editing = false" class="bg-gray-500 text-white px-3 py-1 rounded text-sm">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- EXPERIENCE SECTION -->
+            <div x-show="currentTab === 'experience'" x-cloak>
+                 <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">Experience</h2>
+                 <form action="{{ url_for('add_experience') }}" method="POST" class="bg-white dark:bg-gray-800 p-6 rounded-lg mb-6 shadow-sm dark:shadow-md transition-colors">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <input type="text" name="role" placeholder="Role/Job Title" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                        <input type="text" name="company" placeholder="Company" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                        <input type="text" name="year_range" placeholder="Year Range" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">
+                        <textarea name="description" placeholder="Job Description" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 md:col-span-2"></textarea>
+                    </div>
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"><i class="fas fa-plus"></i> Add Experience</button>
+                </form>
+                 <div class="space-y-4">
+                    {% for exp in experience %}
+                    <div x-data="{ editing: false }" class="bg-white dark:bg-gray-800 p-4 rounded-lg border-l-4 border-yellow-500 shadow-sm transition-colors">
+                        <div x-show="!editing" class="flex justify-between">
+                            <div>
+                                <h3 class="font-bold text-lg text-gray-900 dark:text-white">{{ exp.role }}</h3>
+                                <p class="text-yellow-600 dark:text-yellow-300">{{ exp.company }} <span class="text-gray-500 dark:text-gray-500 text-sm">| {{ exp.year_range }}</span></p>
+                                <p class="text-gray-600 dark:text-gray-400 mt-2 text-sm">{{ exp.description }}</p>
+                            </div>
+                            <div class="flex flex-col gap-2 pl-4">
+                                <button @click="editing = true" class="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"><i class="fas fa-pencil-alt"></i></button>
+                                <a href="{{ url_for('delete_experience', id=exp.id) }}" class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </div>
+                        <form x-show="editing" action="/edit/experience/{{ exp.id }}" method="POST" class="flex flex-col gap-2">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <input type="text" name="role" value="{{ exp.role }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                                <input type="text" name="company" value="{{ exp.company }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                            </div>
+                            <input type="text" name="year_range" value="{{ exp.year_range }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">
+                            <textarea name="description" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">{{ exp.description }}</textarea>
+                            <div class="flex justify-end gap-2">
+                                <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded text-sm">Save</button>
+                                <button type="button" @click="editing = false" class="bg-gray-500 text-white px-3 py-1 rounded text-sm">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>

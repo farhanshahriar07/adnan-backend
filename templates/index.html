@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ about.name if about else 'Portfolio' }} - Mechanical Engineer</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Alpine.js for Interactivity -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- FontAwesome (Replacements for Lucide Icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom Styles & Animations */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+            animation: marquee 30s linear infinite;
+        }
+
+        /* Grid Backgrounds */
+        .bg-grid-dark {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+        .bg-grid-light {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+        }
+
+        /* Reveal Animation Utility */
+        .reveal-hidden {
+            opacity: 0;
+            transform: translateY(3rem); /* translate-y-12 equivalent */
+            transition: all 1s ease-out;
+        }
+        .reveal-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Smooth Transition for Theme Switch */
+        body {
+            transition: background-color 0.5s, color 0.5s;
+        }
+    </style>
+</head>
+<body 
+    x-data="{ 
+        darkMode: localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches),
+        mobileMenuOpen: false,
+        showAllBlogs: false,
+        scrollY: 0,
+        toggleTheme() {
+            this.darkMode = !this.darkMode;
+            localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+            if (this.darkMode) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        },
+        scrollToSection(id) {
+            this.mobileMenuOpen = false;
+            this.showAllBlogs = false;
+            setTimeout(() => {
+                const el = document.getElementById(id);
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+    }"
+    x-init="$watch('scrollY', val => document.documentElement.style.setProperty('--scroll-y', val)); 
+            window.addEventListener('scroll', () => scrollY = window.scrollY);
+            if(darkMode) document.documentElement.classList.add('dark');"
+    :class="darkMode ? 'bg-zinc-950 text-zinc-100' : 'bg-stone-50 text-zinc-900'"
+    class="font-sans overflow-x-hidden relative min-h-screen"
+>
+
+    <!-- Parallax Background Grid -->
+    <div class="fixed inset-0 pointer-events-none z-0 opacity-40"
+         :class="darkMode ? 'bg-grid-dark' : 'bg-grid-light'"
+         :style="'transform: translateY(' + (scrollY * 0.5) + 'px)'">
+    </div>
+
+    <!-- Decorative Floating Gears -->
+    <div class="fixed top-20 -right-24 opacity-5 pointer-events-none z-0 hidden md:block"
+         :class="darkMode ? 'text-white' : 'text-black'"
+         :style="'transform: rotate(' + (scrollY * 0.2) + 'deg)'">
+        <i class="fas fa-cog fa-10x text-[400px]"></i>
+    </div>
+
+    <!-- Floating Pill Navigation -->
+    <nav class="fixed top-6 left-0 right-0 z-50 flex justify-center px-4">
+        <div class="rounded-full px-2 py-2 flex items-center border transition-all duration-500 ease-out"
+             :class="[
+                darkMode ? 'border-zinc-800' : 'border-zinc-200',
+                scrollY > 50 
+                    ? (darkMode ? 'bg-zinc-900/80 backdrop-blur-xl shadow-2xl' : 'bg-white/80 backdrop-blur-xl shadow-2xl')
+                    : (darkMode ? 'bg-zinc-950/80 backdrop-blur-sm shadow-xl' : 'bg-stone-50/80 backdrop-blur-sm shadow-xl')
+             ]">
+            
+            <!-- Logo -->
+            <div @click="scrollToSection('home')" 
+                 class="pl-6 pr-6 md:pr-8 font-serif font-bold text-lg md:text-xl tracking-tighter cursor-pointer flex items-center gap-2"
+                 :class="darkMode ? 'text-zinc-100' : 'text-zinc-900'">
+                <i class="fas fa-cog" :class="darkMode ? 'text-zinc-600' : 'text-zinc-400'"></i>
+                <span>M.E.</span>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center gap-1">
+                <template x-if="!showAllBlogs">
+                    <div class="flex items-center gap-1">
+                        {% for item in ['Home', 'About', 'Projects', 'Experience', 'Thesis', 'Contact'] %}
+                        <button @click="scrollToSection('{{ item|lower }}')" 
+                                class="px-5 py-2 rounded-full text-sm font-medium transition-all duration-300"
+                                :class="darkMode ? 'text-zinc-400 hover:text-white' : 'text-zinc-500 hover:text-zinc-900'">
+                            {{ item }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </template>
+
+                <template x-if="showAllBlogs">
+                    <button @click="showAllBlogs = false" 
+                            class="px-5 py-2 rounded-full text-sm font-medium bg-white text-zinc-900">
+                        Back to Portfolio
+                    </button>
+                </template>
+
+                <!-- Contact Button -->
+                <button @click="scrollToSection('contact')"
+                        class="ml-2 px-5 py-2 rounded-full text-sm font-medium border transition-colors"
+                        :class="darkMode ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border-zinc-700' : 'border-zinc-200 hover:bg-zinc-100 text-zinc-900'">
+                    Contact
+                </button>
+
+                <!-- Resume Download -->
+                <a href="/static/resume.pdf" download="Resume.pdf"
+                   class="ml-2 px-4 py-2 rounded-full text-sm font-medium border transition-all flex items-center gap-2"
+                   :class="darkMode ? 'text-zinc-300 hover:text-white border-zinc-800 hover:border-zinc-600 bg-zinc-900/50 hover:bg-zinc-800' : 'text-zinc-600 hover:text-zinc-900 border-zinc-200 hover:bg-zinc-100'">
+                    Resume <i class="fas fa-download text-xs"></i>
+                </a>
+
+                <!-- Theme Toggle -->
+                <button @click="toggleTheme()"
+                        class="ml-2 p-2 rounded-full border transition-colors"
+                        :class="darkMode ? 'border-zinc-800 hover:bg-zinc-800 text-zinc-100' : 'border-zinc-200 hover:bg-zinc-100 text-zinc-900'">
+                    <i :class="darkMode ? 'fas fa-sun' : 'fas fa-moon'"></i>
+                </button>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 ml-2" :class="darkMode ? 'text-zinc-100' : 'text-zinc-900'">
+                <i :class="mobileMenuOpen ? 'fas fa-times text-xl' : 'fas fa-bars text-xl'"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="fixed inset-0 z-40 pt-32 px-6 md:hidden transition-all duration-500"
+         :class="[
+            mobileMenuOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-full pointer-events-none',
+            darkMode ? 'bg-zinc-950/95' : 'bg-stone-50/95'
+         ]">
+        <div class="flex flex-col gap-8 text-center">
+            {% for item in ['Home', 'About', 'Projects', 'Experience', 'Thesis', 'Contact'] %}
+            <button @click="scrollToSection('{{ item|lower }}')" 
+                    class="text-4xl font-serif transition-colors"
+                    :class="darkMode ? 'text-white hover:text-zinc-400' : 'text-zinc-900 hover:text-zinc-500'">
+                {{ item }}
+            </button>
+            {% endfor %}
+            
+            <div class="flex justify-center gap-6 mt-4">
+                <a href="/static/resume.pdf" download class="text-xl font-serif italic flex items-center gap-2"
+                   :class="darkMode ? 'text-zinc-400 hover:text-white' : 'text-zinc-500 hover:text-zinc-900'">
+                    Resume <i class="fas fa-download"></i>
+                </a>
+                <button @click="toggleTheme()" class="text-xl font-serif italic flex items-center gap-2"
+                        :class="darkMode ? 'text-zinc-400 hover:text-white' : 'text-zinc-500 hover:text-zinc-900'">
+                    Theme <i :class="darkMode ? 'fas fa-sun' : 'fas fa-moon'"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div x-show="!showAllBlogs" x-transition.opacity.duration.500ms>
+        
+        <!-- Hero Section -->
+        <section id="home" class="min-h-screen pt-32 md:pt-40 pb-20 px-6 flex flex-col justify-between relative z-10">
+            <div class="container mx-auto max-w-6xl">
+                <div class="reveal-on-scroll">
+                    <div class="flex items-center gap-4 mb-6 opacity-60">
+                        <i class="fas fa-ruler-combined" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'"></i>
+                        <span class="font-mono text-xs uppercase tracking-[0.2em]" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">System.Architecture.Design</span>
+                        <div class="h-px w-24" :class="darkMode ? 'bg-zinc-700' : 'bg-zinc-300'"></div>
+                    </div>
+                    
+                    <h1 class="text-5xl sm:text-7xl md:text-9xl font-serif font-medium leading-[0.95] md:leading-[0.9] tracking-tight mb-8 relative"
+                        :class="darkMode ? 'text-zinc-100' : 'text-zinc-900'">
+                        {% if about and about.name %}
+                            {{ about.name.split(' ')[0] }} <br/>
+                            <span class="italic ml-2 md:ml-24 relative z-10" :class="darkMode ? 'text-zinc-600' : 'text-zinc-400'">
+                                {{ " ".join(about.name.split(' ')[1:]) }}
+                            </span>
+                        {% else %}
+                            Alex <br/>
+                            <span class="italic ml-2 md:ml-24 relative z-10" :class="darkMode ? 'text-zinc-600' : 'text-zinc-400'">Engineer.</span>
+                        {% endif %}
+                        <div class="absolute bottom-2 left-2 md:left-24 w-32 h-1 -z-10 skew-x-12" :class="darkMode ? 'bg-zinc-800' : 'bg-zinc-300'"></div>
+                    </h1>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8 md:gap-12 items-end mt-12">
+                    <div class="md:col-span-1 border-l pl-6" :class="darkMode ? 'border-zinc-800' : 'border-zinc-200'">
+                        <p class="text-base md:text-lg leading-relaxed font-light" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">
+                            {{ about.short_bio if about and about.short_bio else "Mechanical Engineer focused on bridging the gap between rigorous analysis and functional aesthetics." }}
+                        </p>
+                    </div>
+                    <div class="md:col-span-2 flex flex-col sm:flex-row justify-start md:justify-end gap-4">
+                        <button @click="scrollToSection('projects')" 
+                                class="px-8 py-4 rounded-full font-medium transition-colors flex items-center justify-center gap-2 w-full sm:w-auto shadow-lg"
+                                :class="darkMode ? 'bg-white text-zinc-900 hover:bg-zinc-200' : 'bg-zinc-900 text-white hover:bg-zinc-800'">
+                            View Work <i class="fas fa-arrow-up-right-from-square"></i>
+                        </button>
+                        <button @click="scrollToSection('contact')" 
+                                class="bg-transparent border px-8 py-4 rounded-full font-medium transition-colors w-full sm:w-auto"
+                                :class="darkMode ? 'border-zinc-700 text-white hover:bg-zinc-900' : 'border-zinc-300 text-zinc-900 hover:bg-zinc-100'">
+                            Get in Touch
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Image Parallax -->
+            <div class="mt-12 md:mt-20 reveal-on-scroll" :style="'transform: translateY(' + (scrollY * 0.05) + 'px)'">
+                <div class="w-full h-[300px] md:h-[500px] rounded-sm overflow-hidden relative border"
+                     :class="darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-200 border-zinc-200'">
+                    
+                    <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2670&auto=format&fit=crop" 
+                         class="w-full h-full object-cover grayscale mix-blend-overlay"
+                         :class="darkMode ? 'opacity-50' : 'opacity-70 mix-blend-multiply'"
+                         alt="Mechanical Engineering">
+                    
+                    <!-- Technical Overlay -->
+                    <div class="absolute inset-0 opacity-20" :class="darkMode ? 'bg-grid-dark' : 'bg-grid-light'"></div>
+                    <div class="absolute bottom-4 right-4 font-mono text-xs" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">FIG 1.0 // PROTOTYPING</div>
+                    <div class="absolute top-4 left-4 font-mono text-xs" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">SCALE 1:1</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Marquee Skills -->
+        <div class="relative flex overflow-hidden py-4 border-y"
+             :class="darkMode ? 'bg-zinc-950 border-zinc-800' : 'bg-stone-100 border-zinc-200'">
+            <div class="animate-marquee whitespace-nowrap flex gap-16 items-center">
+                {% for _ in range(3) %} <!-- Repeat 3 times for seamless loop -->
+                    {% for skill in skills %}
+                    <span class="text-xl md:text-2xl font-mono mx-4 flex items-center gap-4"
+                          :class="darkMode ? 'text-zinc-600' : 'text-zinc-400'">
+                        <i class="fas fa-code-branch" :class="darkMode ? 'text-zinc-700' : 'text-zinc-400'"></i> {{ skill.name }}
+                    </span>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- About Section -->
+        <section id="about" class="py-20 md:py-32 px-6 relative z-10 border-b"
+                 :class="darkMode ? 'bg-zinc-950 border-zinc-800' : 'bg-stone-50 border-zinc-200'">
+            <div class="container mx-auto max-w-6xl">
+                <div class="reveal-on-scroll">
+                    <div class="grid md:grid-cols-2 gap-12 md:gap-20 items-center">
+                        <div>
+                            <span class="font-mono text-xs uppercase tracking-widest mb-4 block flex items-center gap-2"
+                                  :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">
+                                <span class="w-2 h-2 rounded-full" :class="darkMode ? 'bg-zinc-500' : 'bg-zinc-400'"></span> About Me
+                            </span>
+                            <h2 class="text-3xl md:text-5xl font-serif mb-8 leading-tight" :class="darkMode ? 'text-zinc-100' : 'text-zinc-900'">
+                                Applying <span class="italic" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">first principles</span> to solve complex physical problems.
+                            </h2>
+                            <div class="space-y-6 text-lg leading-relaxed font-light whitespace-pre-wrap mb-10" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">
+                                {{ about.long_bio|safe if about and about.long_bio else "I believe that great engineering is indistinguishable from art. Whether it's optimizing a thermal system or designing a chassis, the goal is always elegance in efficiency." }}
+                            </div>
+
+                            <!-- Personal Details Grid -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-4">
+                                {% if about %}
+                                    {% set details = [
+                                        ('Birthday', about.birthday),
+                                        ('Website', about.website),
+                                        ('Phone', about.phone),
+                                        ('City', about.city),
+                                        ('Degree', about.degree),
+                                        ('Email', about.email),
+                                        ('Freelance', about.freelance_status)
+                                    ] %}
+                                    {% for label, value in details %}
+                                        {% if value %}
+                                        <div>
+                                            <span class="block text-xs uppercase tracking-widest mb-1 font-mono opacity-70" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">{{ label }}:</span>
+                                            <span class="font-medium" :class="darkMode ? 'text-zinc-100' : 'text-zinc-900'">{{ value }}</span>
+                                        </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Portrait Image -->
+                        <div class="relative">
+                            <div class="aspect-[3/4] rounded-sm overflow-hidden border relative"
+                                 :class="darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'"
+                                 :style="'transform: translateY(' + (scrollY * -0.05) + 'px)'">
+                                
+                                <div class="absolute inset-4 border" :class="darkMode ? 'border-zinc-700/50' : 'border-zinc-300/50'"></div>
+                                <div class="absolute top-2 right-2 w-2 h-2 border-t border-r" :class="darkMode ? 'border-zinc-100' : 'border-zinc-900'"></div>
+                                <div class="absolute bottom-2 left-2 w-2 h-2 border-b border-l" :class="darkMode ? 'border-zinc-100' : 'border-zinc-900'"></div>
+                                
+                                {% if about and about.profile_image %}
+                                    <img src="{{ about.profile_image }}" alt="Profile" class="w-full h-full object-cover grayscale opacity-80 hover:opacity-100 transition-opacity">
+                                {% else %}
+                                    <div class="w-full h-full flex items-center justify-center font-mono" :class="darkMode ? 'text-zinc-600' : 'text-zinc-400'">
+                                        IMG_PORTRAIT.RAW
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="py-20 md:py-32 px-6 relative z-10 border-b"
+                 :class="darkMode ? 'bg-zinc-950 border-zinc-800' : 'bg-stone-50 border-zinc-200'">
+            <div class="container mx-auto max-w-6xl">
+                <div class="reveal-on-scroll">
+                    <div class="flex justify-between items-end mb-12 md:mb-20">
+                        <div>
+                            <span class="font-mono text-xs mb-2 block" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">COMPETENCIES</span>
+                            <h2 class="text-4xl md:text-7xl font-serif" :class="darkMode ? 'text-zinc-100' : 'text-zinc-900'">Technical Proficiency</h2>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-8">
+                        {% if skills %}
+                            {% for skill in skills %}
+                            <div class="group">
+                                <div class="flex justify-between mb-2">
+                                    <span class="font-mono text-sm transition-colors" 
+                                          :class="darkMode ? 'text-zinc-600 group-hover:text-zinc-100' : 'text-zinc-400 group-hover:text-zinc-900'">
+                                        {{ skill.name }}
+                                    </span>
+                                    <span class="font-mono text-sm" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">{{ skill.percentage }}%</span>
+                                </div>
+                                <div class="h-1 w-full overflow-hidden relative" :class="darkMode ? 'bg-zinc-800' : 'bg-zinc-200'">
+                                    <div class="h-full transition-all duration-1000 ease-out reveal-on-scroll-width"
+                                         :class="darkMode ? 'bg-zinc-400' : 'bg-zinc-600'"
+                                         style="width: {{ skill.percentage }}%"></div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-span-2 text-center py-10" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">No skills loaded.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="py-20 md:py-32 px-6 relative z-10"
+                 :class="darkMode ? 'bg-zinc-950' : 'bg-stone-50'">
+            <div class="container mx-auto max-w-6xl">
+                <div class="flex justify-between items-end mb-12 md:mb-20 border-b pb-8" :class="darkMode ? 'border-zinc-800' : 'border-zinc-200'">
+                    <div>
+                        <span class="font-mono text-xs mb-2 block" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">SELECTED WORKS</span>
+                        <h2 class="text-4xl md:text-7xl font-serif" :class="darkMode ? 'text-zinc-100' : 'text-zinc-900'">Portfolio</h2>
+                    </div>
+                    <span class="font-mono hidden md:block text-xl" :class="darkMode ? 'text-zinc-600' : 'text-zinc-400'">({{ "{:02d}".format(projects|length) }})</span>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8 md:gap-x-16">
+                    {% if projects %}
+                        {% for project in projects %}
+                        <div class="reveal-on-scroll group cursor-pointer mb-12 md:mb-0 {{ 'md:pt-32' if loop.index % 2 == 0 else '' }}">
+                            <div class="aspect-[4/3] rounded-sm overflow-hidden mb-6 relative transition-all duration-500 group-hover:opacity-90 border"
+                                 :class="darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-100 border-zinc-200'">
+                                <div class="absolute top-4 right-4 font-mono text-[10px] bg-black/10 px-2 py-1 backdrop-blur-sm rounded" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">PRJ-{{ project.id }}</div>
+                                
+                                {% if project.image_url %}
+                                    <img src="{{ project.image_url }}" alt="{{ project.title }}" class="w-full h-full object-cover">
+                                {% else %}
+                                    <div class="absolute inset-0 flex items-center justify-center font-serif text-2xl italic opacity-60"
+                                         :class="darkMode ? 'text-zinc-600' : 'text-zinc-400'">
+                                        {{ project.category }}
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="absolute inset-0 border border-white/10 m-4 pointer-events-none"></div>
+                            </div>
+                            <div class="flex justify-between items-start border-t pt-4" :class="darkMode ? 'border-zinc-800' : 'border-zinc-200'">
+                                <div>
+                                    <h3 class="text-2xl md:text-3xl font-serif mb-2 transition-colors"
+                                        :class="darkMode ? 'text-zinc-200 group-hover:text-zinc-500' : 'text-zinc-900 group-hover:text-zinc-500'">{{ project.title }}</h3>
+                                    <p class="max-w-sm text-sm md:text-base font-mono" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">{{ project.category }}</p>
+                                </div>
+                                {% if project.project_link %}
+                                <a href="{{ project.project_link }}" target="_blank" class="opacity-0 group-hover:opacity-100 transition-opacity" :class="darkMode ? 'text-zinc-200' : 'text-zinc-900'">
+                                    <i class="fas fa-arrow-up-right-from-square"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="col-span-2 text-center py-20" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">No projects loaded.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        <!-- Experience Section -->
+        <section id="experience" class="py-20 md:py-32 px-6 relative z-10 border-t"
+                 :class="darkMode ? 'bg-zinc-950 border-zinc-800' : 'bg-stone-50 border-zinc-200'">
+            <div class="container mx-auto max-w-6xl">
+                <div class="reveal-on-scroll">
+                    <div class="flex items-center gap-4 mb-16">
+                        <i class="fas fa-clock text-2xl" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'"></i>
+                        <h2 class="text-3xl md:text-5xl font-serif" :class="darkMode ? 'text-zinc-100' : 'text-zinc-900'">Professional History</h2>
+                    </div>
+
+                    <div class="relative border-l ml-3 md:ml-0 space-y-16" :class="darkMode ? 'border-zinc-800' : 'border-zinc-200'">
+                        {% if experience %}
+                            {% for job in experience %}
+                            <div class="relative pl-8 md:pl-12 group">
+                                <div class="absolute -left-[5px] top-2 w-[9px] h-[9px] border rounded-full transition-colors"
+                                     :class="[
+                                        darkMode ? 'bg-zinc-950 border-zinc-500 group-hover:bg-white' : 'bg-stone-50 border-zinc-400 group-hover:bg-zinc-900'
+                                     ]"></div>
+                                
+                                <div class="grid md:grid-cols-4 gap-4 items-baseline">
+                                    <span class="font-mono text-sm md:col-span-1" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">{{ job.year_range }}</span>
+                                    <div class="md:col-span-3">
+                                        <h4 class="text-xl md:text-2xl font-medium transition-colors"
+                                            :class="darkMode ? 'text-zinc-200 group-hover:text-white' : 'text-zinc-900 group-hover:text-zinc-600'">{{ job.role }}</h4>
+                                        <div class="font-serif italic mb-2" :class="darkMode ? 'text-zinc-600' : 'text-zinc-400'">{{ job.company }}</div>
+                                        <p class="text-sm max-w-lg" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">{{ job.description }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="pl-8" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">Loading experience...</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Thesis Section -->
+        <section id="thesis" class="py-20 md:py-32 px-6 relative z-10 border-t"
+                 :class="darkMode ? 'bg-zinc-950 border-zinc-800' : 'bg-stone-50 border-zinc-200'">
+            <div class="container mx-auto max-w-6xl">
+                <div class="reveal-on-scroll">
+                    <div class="flex items-center gap-4 mb-16 justify-end text-right">
+                        <div>
+                            <h2 class="text-3xl md:text-5xl font-serif" :class="darkMode ? 'text-zinc-100' : 'text-zinc-900'">Research & Publications</h2>
+                            <span class="font-mono text-xs" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">ACADEMIC ARCHIVE</span>
+                        </div>
+                        <i class="fas fa-book-open text-2xl" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'"></i>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-6">
+                        {% if theses %}
+                            {% for paper in theses %}
+                            <div class="group p-8 rounded-sm border transition-all hover:-translate-y-1 relative overflow-hidden shadow-sm"
+                                 :class="darkMode ? 'bg-zinc-900 border-zinc-800 hover:border-zinc-600' : 'bg-white border-zinc-200 hover:border-zinc-400'">
+                                <div class="absolute top-0 right-0 p-4 opacity-10">
+                                    <i class="fas fa-file-alt text-4xl"></i>
+                                </div>
+                                <div class="font-mono text-xs mb-6" :class="darkMode ? 'text-zinc-600' : 'text-zinc-400'">DOC-{{ paper.id }} // {{ paper.publication_date }}</div>
+                                <h4 class="text-xl font-serif mb-2" :class="darkMode ? 'text-zinc-200 group-hover:text-white' : 'text-zinc-900 group-hover:text-zinc-700'">{{ paper.title }}</h4>
+                                <p class="text-sm font-mono mb-8 line-clamp-3" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">{{ paper.description }}</p>
+                                
+                                {% if paper.link %}
+                                <a href="{{ paper.link }}" target="_blank" class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-colors"
+                                   :class="darkMode ? 'text-zinc-400 group-hover:text-white' : 'text-zinc-500 group-hover:text-zinc-900'">
+                                    Download PDF <i class="fas fa-download text-xs"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-span-3 text-center" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">No research papers found.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-20 md:py-32 px-6 relative z-10"
+                 :class="darkMode ? 'bg-zinc-950' : 'bg-stone-50'">
+            <div class="container mx-auto max-w-6xl">
+                <div class="reveal-on-scroll">
+                    <div class="grid md:grid-cols-2 gap-12 md:gap-20">
+                        <div>
+                            <h2 class="text-4xl md:text-6xl font-serif mb-6" :class="darkMode ? 'text-zinc-100' : 'text-zinc-900'">Let's start a project.</h2>
+                            <p class="text-lg mb-12" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">
+                                {{ about.freelance_status if about and about.freelance_status else "Available for freelance design engineering projects, consulting, and robotic systems development." }}
+                            </p>
+                            <div class="space-y-6">
+                                <div class="flex items-center gap-4" :class="darkMode ? 'text-zinc-600' : 'text-zinc-400'">
+                                    <i class="fas fa-envelope text-xl"></i>
+                                    <span>{{ about.email if about else 'contact@alexengineer.com' }}</span>
+                                </div>
+                                <div class="flex items-center gap-4" :class="darkMode ? 'text-zinc-600' : 'text-zinc-400'">
+                                    <i class="fab fa-linkedin text-xl"></i>
+                                    <span>{{ about.name if about else 'Alex' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6 md:p-8 rounded-sm border" :class="darkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'">
+                            <form id="contactForm">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                    <div class="space-y-2">
+                                        <label class="text-xs uppercase tracking-wider font-mono" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">Name</label>
+                                        <input type="text" name="name" required class="w-full border rounded-sm p-3 focus:outline-none transition-colors font-sans"
+                                               :class="darkMode ? 'bg-zinc-900 border-zinc-800 text-zinc-100 focus:border-zinc-500' : 'bg-zinc-100 border-zinc-200 text-zinc-900 focus:border-zinc-400'" 
+                                               placeholder="Jane Doe">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="text-xs uppercase tracking-wider font-mono" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">Email</label>
+                                        <input type="email" name="email" required class="w-full border rounded-sm p-3 focus:outline-none transition-colors font-sans"
+                                               :class="darkMode ? 'bg-zinc-900 border-zinc-800 text-zinc-100 focus:border-zinc-500' : 'bg-zinc-100 border-zinc-200 text-zinc-900 focus:border-zinc-400'"
+                                               placeholder="jane@example.com">
+                                    </div>
+                                </div>
+                                <div class="space-y-2 mb-6">
+                                    <label class="text-xs uppercase tracking-wider font-mono" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">Subject</label>
+                                    <input type="text" name="subject" class="w-full border rounded-sm p-3 focus:outline-none transition-colors font-sans"
+                                           :class="darkMode ? 'bg-zinc-900 border-zinc-800 text-zinc-100 focus:border-zinc-500' : 'bg-zinc-100 border-zinc-200 text-zinc-900 focus:border-zinc-400'"
+                                           placeholder="Project Inquiry">
+                                </div>
+                                <div class="space-y-2 mb-6">
+                                    <label class="text-xs uppercase tracking-wider font-mono" :class="darkMode ? 'text-zinc-400' : 'text-zinc-500'">Message</label>
+                                    <textarea name="message" required rows="4" class="w-full border rounded-sm p-3 focus:outline-none transition-colors resize-none font-sans"
+                                              :class="darkMode ? 'bg-zinc-900 border-zinc-800 text-zinc-100 focus:border-zinc-500' : 'bg-zinc-100 border-zinc-200 text-zinc-900 focus:border-zinc-400'"
+                                              placeholder="Tell me about your project needs..."></textarea>
+                                </div>
+                                <button type="submit" class="w-full font-medium py-4 rounded-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 font-mono text-sm uppercase tracking-widest"
+                                        :class="darkMode ? 'bg-white text-zinc-900' : 'bg-zinc-900 text-white'">
+                                    Send Message <i class="fas fa-paper-plane"></i>
+                                </button>
+                                <p id="formStatus" class="mt-4 text-center text-sm hidden"></p>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-20 pt-8 border-t flex flex-col md:flex-row justify-between text-sm font-mono gap-4 items-center"
+                         :class="[darkMode ? 'border-zinc-800' : 'border-zinc-200', darkMode ? 'text-zinc-600' : 'text-zinc-400']">
+                        <span>© 2025 {{ about.name if about else 'Alex Engineer' }}</span>
+                        <span>Made with Flask & Tailwind</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scripts for Scroll & Contact Form -->
+    <script>
+        // Scroll Spy Intersection Observer
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('reveal-visible');
+                        entry.target.classList.remove('reveal-hidden');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.reveal-on-scroll').forEach((el) => {
+                el.classList.add('reveal-hidden');
+                observer.observe(el);
+            });
+
+            // Contact Form Logic
+            const form = document.getElementById('contactForm');
+            const status = document.getElementById('formStatus');
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                
+                // Show loading state
+                const btn = form.querySelector('button');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = 'Sending...';
+                btn.disabled = true;
+
+                try {
+                    const response = await fetch('/api/contact', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (response.ok) {
+                        status.textContent = 'Message Sent Successfully!';
+                        status.className = 'mt-4 text-center text-sm text-green-500 block';
+                        form.reset();
+                    } else {
+                        throw new Error('Failed');
+                    }
+                } catch (error) {
+                    status.textContent = 'Failed to send message. Please try again.';
+                    status.className = 'mt-4 text-center text-sm text-red-500 block';
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    setTimeout(() => status.style.display = 'none', 5000);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
