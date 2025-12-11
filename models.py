@@ -76,6 +76,7 @@ class Education(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     degree = db.Column(db.String(100), nullable=False)
     institution = db.Column(db.String(100), nullable=False)
+    logo_url = db.Column(db.String(255)) # <--- NEW FIELD
     year_range = db.Column(db.String(50))
     description = db.Column(db.Text)
 
@@ -84,6 +85,7 @@ class Education(db.Model):
             'id': self.id,
             'degree': self.degree,
             'institution': self.institution,
+            'logo_url': self.logo_url, # <--- NEW FIELD
             'year_range': self.year_range,
             'description': self.description
         }

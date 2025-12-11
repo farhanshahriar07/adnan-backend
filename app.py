@@ -301,20 +301,20 @@ def edit_skill(id):
 @app.route('/add/education', methods=['POST'])
 @login_required
 def add_education():
+    logo_url = None
+    # Handle Logo Upload
+    if 'logo_file' in request.files:
+        url = handle_file_upload(request.files['logo_file'], subfolder='education')
+        if url: logo_url = url
+
     new_edu = Education(
         degree=request.form['degree'],
         institution=request.form['institution'],
+        logo_url=logo_url,
         year_range=request.form['year_range'],
         description=request.form['description']
     )
     db.session.add(new_edu)
-    db.session.commit()
-    return redirect(url_for('dashboard', tab='education'))
-
-@app.route('/delete/education/<int:id>')
-@login_required
-def delete_education(id):
-    Education.query.filter_by(id=id).delete()
     db.session.commit()
     return redirect(url_for('dashboard', tab='education'))
 
@@ -326,6 +326,12 @@ def edit_education(id):
     edu.institution = request.form['institution']
     edu.year_range = request.form['year_range']
     edu.description = request.form['description']
+    
+    # Handle Logo Update
+    if 'logo_file' in request.files:
+         url = handle_file_upload(request.files['logo_file'], subfolder='education')
+         if url: edu.logo_url = url
+         
     db.session.commit()
     flash('Education updated successfully!')
     return redirect(url_for('dashboard', tab='education'))
