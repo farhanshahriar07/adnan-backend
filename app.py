@@ -336,6 +336,13 @@ def edit_education(id):
     flash('Education updated successfully!')
     return redirect(url_for('dashboard', tab='education'))
 
+@app.route('/delete/education/<int:id>')
+@login_required
+def delete_education(id):
+    Education.query.filter_by(id=id).delete()
+    db.session.commit()
+    return redirect(url_for('dashboard', tab='education'))
+
 @app.route('/add/experience', methods=['POST'])
 @login_required
 def add_experience():
