@@ -138,6 +138,23 @@ class Thesis(db.Model):
             'link': self.link,
             'publication_date': self.publication_date
         }
+    
+# Achievements Section (New)
+class Achievement(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text)
+    date = db.Column(db.String(50)) # e.g. "Dec 2024"
+    link = db.Column(db.String(255)) # Certificate link or news url
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'description': self.description,
+            'date': self.date,
+            'link': self.link
+        }
 
 # Contact Messages
 class ContactMessage(db.Model):

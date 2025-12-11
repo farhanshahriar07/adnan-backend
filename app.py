@@ -9,7 +9,7 @@ from flask_cors import CORS
 from supabase import create_client, Client
 from gotrue.errors import AuthApiError
 from dotenv import load_dotenv
-from models import db, User, About, Skill, Education, Experience, Project, Thesis, ContactMessage
+from models import db, User, About, Skill, Education, Experience, Project, Thesis, ContactMessage, Achievement
 
 # Load environment variables from .env file
 load_dotenv()
@@ -189,6 +189,7 @@ def dashboard():
     experience = Experience.query.all()
     projects = Project.query.all()
     theses = Thesis.query.all()
+    achievements = Achievement.query.all() # <--- ADD THIS LINE
     
     messages = ContactMessage.query.order_by(ContactMessage.timestamp.desc()).all()
     unread_count = ContactMessage.query.filter_by(read=False).count()
@@ -203,7 +204,8 @@ def dashboard():
     return render_template('dashboard.html', 
                            about=about, skills=skills, education=education, 
                            experience=experience, projects=projects, 
-                           theses=theses, messages=messages,
+                           theses=theses, achievements=achievements,
+                           messages=messages,
                            unread_count=unread_count,
                            active_tab=active_tab,
                            image_history=image_history)
@@ -448,6 +450,41 @@ def edit_thesis(id):
     flash('Thesis updated successfully!')
     return redirect(url_for('dashboard', tab='thesis'))
 
+# --- ACHIEVEMENT ROUTES ---
+
+@app.route('/add/achievement', methods=['POST'])
+@login_required
+def add_achievement():
+    new_ach = Achievement(
+        title=request.form['title'],
+        description=request.form['description'],
+        date=request.form['date'],
+        link=request.form['link']
+    )
+    db.session.add(new_ach)
+    db.session.commit()
+    return redirect(url_for('dashboard', tab='achievements'))
+
+@app.route('/delete/achievement/<int:id>')
+@login_required
+def delete_achievement(id):
+    Achievement.query.filter_by(id=id).delete()
+    db.session.commit()
+    return redirect(url_for('dashboard', tab='achievements'))
+
+@app.route('/edit/achievement/<int:id>', methods=['POST'])
+@login_required
+def edit_achievement(id):
+    ach = Achievement.query.get_or_404(id)
+    ach.title = request.form['title']
+    ach.description = request.form['description']
+    ach.date = request.form['date']
+    ach.link = request.form['link']
+    db.session.commit()
+    flash('Achievement updated successfully!')
+    return redirect(url_for('dashboard', tab='achievements'))
+
+
 # --- PUBLIC API ENDPOINTS ---
 
 @app.route('/api/about', methods=['GET'])
@@ -479,6 +516,11 @@ def get_projects():
 def get_thesis():
     thesis = Thesis.query.all()
     return jsonify([t.to_dict() for t in thesis])
+
+@app.route('/api/achievements', methods=['GET'])
+def get_achievements():
+    achievements = Achievement.query.all()
+    return jsonify([a.to_dict() for a in achievements])
 
 @app.route('/api/contact', methods=['POST'])
 def api_contact():
