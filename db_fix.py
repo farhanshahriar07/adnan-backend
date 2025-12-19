@@ -1,13 +1,13 @@
 from app import app, db
 from sqlalchemy import text
 
-# This script manually adds the 'logo_url' column to the 'education' table
+# This script manually adds the 'image_url' column to the 'skill' table
 with app.app_context():
-    print("⏳ Attempting to add column 'logo_url' to 'education' table...")
+    print("⏳ Attempting to add column 'image_url' to 'skill' table...")
     try:
         # For SQLite
         with db.engine.connect() as conn:
-            conn.execute(text("ALTER TABLE education ADD COLUMN logo_url VARCHAR(255)"))
+            conn.execute(text("ALTER TABLE skill ADD COLUMN image_url VARCHAR(255)"))
             conn.commit()
         print("✅ Success: Column added!")
     except Exception as e:

@@ -276,15 +276,17 @@ def update_about():
 @app.route('/add/skill', methods=['POST'])
 @login_required
 def add_skill():
-    new_skill = Skill(name=request.form['name'], percentage=request.form['percentage'])
-    db.session.add(new_skill)
-    db.session.commit()
-    return redirect(url_for('dashboard', tab='skills'))
+    image_url = None
+    if 'image_file' in request.files:
+        url = handle_file_upload(request.files['image_file'], subfolder='skills')
+        if url: image_url = url
 
-@app.route('/delete/skill/<int:id>')
-@login_required
-def delete_skill(id):
-    Skill.query.filter_by(id=id).delete()
+    new_skill = Skill(
+        name=request.form['name'], 
+        percentage=request.form['percentage'],
+        image_url=image_url
+    )
+    db.session.add(new_skill)
     db.session.commit()
     return redirect(url_for('dashboard', tab='skills'))
 
@@ -294,8 +296,20 @@ def edit_skill(id):
     skill = Skill.query.get_or_404(id)
     skill.name = request.form['name']
     skill.percentage = request.form['percentage']
+    
+    if 'image_file' in request.files:
+        url = handle_file_upload(request.files['image_file'], subfolder='skills')
+        if url: skill.image_url = url
+
     db.session.commit()
     flash('Skill updated successfully!')
+    return redirect(url_for('dashboard', tab='skills'))
+
+@app.route('/delete/skill/<int:id>')
+@login_required
+def delete_skill(id):
+    Skill.query.filter_by(id=id).delete()
+    db.session.commit()
     return redirect(url_for('dashboard', tab='skills'))
 
 @app.route('/add/education', methods=['POST'])
