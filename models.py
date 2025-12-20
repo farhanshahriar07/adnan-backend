@@ -24,7 +24,11 @@ class About(db.Model):
     freelance_status = db.Column(db.String(20))
     short_bio = db.Column(db.Text)
     long_bio = db.Column(db.Text)
-    profile_image = db.Column(db.String(255))
+
+    # Images
+    profile_image = db.Column(db.String(255))      # Main Image
+    mini_profile_image = db.Column(db.String(255)) # Mini Image (New)
+    
     resume_link = db.Column(db.String(255)) # New Field
     
     # Social Links

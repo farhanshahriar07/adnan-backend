@@ -223,28 +223,53 @@
                         <textarea name="long_bio" rows="6" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors">{{ about.long_bio or '' if about else '' }}</textarea>
                     </div>
 
-                    <!-- IMAGE PICKER COMPONENT -->
-                    <div x-data="{ imgUrl: '{{ about.profile_image or '' if about else '' }}' }" class="mb-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-                         <label class="block text-gray-600 dark:text-gray-400 text-sm font-bold mb-2">Profile Image</label>
-                         
-                         <div class="flex flex-col md:flex-row gap-4 items-start">
-                             <div class="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden flex-shrink-0 border border-gray-300 dark:border-gray-600">
-                                 <img x-show="imgUrl" :src="imgUrl" class="w-full h-full object-cover">
-                                 <div x-show="!imgUrl" class="w-full h-full flex items-center justify-center text-gray-400"><i class="fas fa-image"></i></div>
+                    <!-- IMAGES SECTION -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        
+                        <!-- 1. MAIN IMAGE PICKER -->
+                        <div x-data="{ imgUrl: '{{ about.profile_image or '' if about else '' }}' }" class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                             <label class="block text-gray-600 dark:text-gray-400 text-sm font-bold mb-2">Main Profile Image</label>
+                             <div class="flex flex-col gap-3">
+                                 <div class="w-full h-48 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600 relative group">
+                                     <img x-show="imgUrl" :src="imgUrl" class="w-full h-full object-cover">
+                                     <div x-show="!imgUrl" class="absolute inset-0 flex items-center justify-center text-gray-400"><i class="fas fa-image text-4xl"></i></div>
+                                 </div>
+                                 <div class="space-y-2">
+                                     <input type="hidden" name="profile_image" x-model="imgUrl">
+                                     <input type="file" name="image_file" accept="image/*" class="block w-full text-xs text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-100 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-200 transition-colors"/>
+                                     <select @change="imgUrl = $event.target.value" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-xs">
+                                         <option value="">Select History...</option>
+                                         {% for url in image_history %}
+                                            <option value="{{ url }}">{{ url }}</option>
+                                         {% endfor %}
+                                     </select>
+                                     <input type="text" x-model="imgUrl" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-xs" placeholder="Paste URL...">
+                                 </div>
                              </div>
+                        </div>
 
-                             <div class="flex-1 w-full space-y-3">
-                                 <input type="hidden" name="profile_image" x-model="imgUrl">
-                                 <input type="file" name="image_file" accept="image/*" class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-200 dark:hover:file:bg-blue-800 transition-colors"/>
-                                 <select @change="imgUrl = $event.target.value" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm">
-                                     <option value="">Select Previous Image...</option>
-                                     {% for url in image_history %}
-                                        <option value="{{ url }}">{{ url }}</option>
-                                     {% endfor %}
-                                 </select>
-                                 <input type="text" x-model="imgUrl" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm" placeholder="Or paste image URL...">
+                        <!-- 2. MINI IMAGE PICKER -->
+                        <div x-data="{ miniUrl: '{{ about.mini_profile_image or '' if about else '' }}' }" class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+                             <label class="block text-gray-600 dark:text-gray-400 text-sm font-bold mb-2">Mini / Secondary Image</label>
+                             <div class="flex flex-col gap-3">
+                                 <div class="w-full h-48 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600 relative group">
+                                     <img x-show="miniUrl" :src="miniUrl" class="w-full h-full object-contain p-2">
+                                     <div x-show="!miniUrl" class="absolute inset-0 flex items-center justify-center text-gray-400"><i class="fas fa-id-badge text-4xl"></i></div>
+                                 </div>
+                                 <div class="space-y-2">
+                                     <input type="hidden" name="mini_profile_image" x-model="miniUrl">
+                                     <input type="file" name="mini_image_file" accept="image/*" class="block w-full text-xs text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-purple-100 dark:file:bg-purple-900 file:text-purple-700 dark:file:text-purple-300 hover:file:bg-purple-200 transition-colors"/>
+                                     <select @change="miniUrl = $event.target.value" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-xs">
+                                         <option value="">Select History...</option>
+                                         {% for url in image_history %}
+                                            <option value="{{ url }}">{{ url }}</option>
+                                         {% endfor %}
+                                     </select>
+                                     <input type="text" x-model="miniUrl" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-xs" placeholder="Paste URL...">
+                                 </div>
                              </div>
-                         </div>
+                        </div>
+
                     </div>
 
                     <!-- RESUME PICKER -->

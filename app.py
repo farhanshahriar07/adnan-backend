@@ -195,7 +195,10 @@ def dashboard():
     unread_count = ContactMessage.query.filter_by(read=False).count()
 
     image_history = set()
-    if about and about.profile_image: image_history.add(about.profile_image)
+    if about:
+        if about.profile_image: image_history.add(about.profile_image)
+        if about.mini_profile_image: image_history.add(about.mini_profile_image) # New
+        
     for p in projects:
         if p.image_url: image_history.add(p.image_url)
     
@@ -253,7 +256,7 @@ def update_about():
     about.instagram = request.form.get('instagram')
     about.twitter = request.form.get('twitter')
     
-    # Resume Handling (Manual Link or File Upload)
+    # Resume
     if request.form.get('resume_link'):
         about.resume_link = request.form.get('resume_link')
         
@@ -261,17 +264,26 @@ def update_about():
         url = handle_file_upload(request.files['resume_file'], subfolder='resumes')
         if url: about.resume_link = url
 
-    # Image Handling
+    # 1. Main Profile Image
     if request.form.get('profile_image'):
         about.profile_image = request.form.get('profile_image')
     
     if 'image_file' in request.files:
         url = handle_file_upload(request.files['image_file'], subfolder='profile')
         if url: about.profile_image = url
+
+    # 2. Mini Profile Image (NEW)
+    if request.form.get('mini_profile_image'):
+        about.mini_profile_image = request.form.get('mini_profile_image')
+    
+    if 'mini_image_file' in request.files:
+        url = handle_file_upload(request.files['mini_image_file'], subfolder='profile')
+        if url: about.mini_profile_image = url
     
     db.session.commit()
     flash('About section updated!')
     return redirect(url_for('dashboard', tab='about'))
+
 
 @app.route('/add/skill', methods=['POST'])
 @login_required
