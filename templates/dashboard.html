@@ -69,7 +69,7 @@
                     ('experience', 'fa-briefcase', 'Experience'),
                     ('projects', 'fa-project-diagram', 'Projects'),
                     ('achievements', 'fa-trophy', 'Achievements'),
-                    ('thesis', 'fa-book', 'Thesis')
+                    ('research', 'fa-book', 'Research')
                 ] %}
                 <button @click="currentTab = '{{ tab_id }}'" :class="currentTab === '{{ tab_id }}' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'" class="w-full flex items-center p-3 rounded-lg transition-all">
                     <i class="fas {{ icon }} w-6"></i> {{ label }}
@@ -106,7 +106,7 @@
                     <option value="experience">Experience</option>
                     <option value="projects">Projects</option>
                     <option value="achievements">Achievements</option>
-                    <option value="thesis">Thesis</option>
+                    <option value="research">Research</option>
                     <option value="messages">Messages</option>
                 </select>
             </div>
@@ -511,43 +511,43 @@
                 </div>
             </div>
 
-            <!-- THESIS SECTION -->
-            <div x-show="currentTab === 'thesis'" x-cloak>
-                <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">Thesis</h2>
+            <!-- RESEARCH SECTION -->
+            <div x-show="currentTab === 'research'" x-cloak>
+                <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">Research</h2>
                 
-                 <form action="{{ url_for('add_thesis') }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 p-6 rounded-lg mb-6 shadow-sm dark:shadow-md transition-colors">
+                 <form action="{{ url_for('add_research') }}" method="POST" enctype="multipart/form-data" class="bg-white dark:bg-gray-800 p-6 rounded-lg mb-6 shadow-sm dark:shadow-md transition-colors">
                     <div class="grid grid-cols-1 gap-4 mb-4">
-                        <input type="text" name="title" placeholder="Thesis Title" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                        <input type="text" name="title" placeholder="Research Title" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
                         <div class="grid grid-cols-2 gap-4">
                             <input type="text" name="publication_date" placeholder="Date/Year" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">
                         </div>
                         
                         <div>
-                            <label class="block text-gray-600 dark:text-gray-400 text-xs font-bold mb-1">Thesis PDF (Upload or Link)</label>
-                            <input type="file" name="thesis_pdf" accept=".pdf,image/*" class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-200 dark:hover:file:bg-blue-800 mb-2"/>
+                            <label class="block text-gray-600 dark:text-gray-400 text-xs font-bold mb-1">Research PDF (Upload or Link)</label>
+                            <input type="file" name="research_pdf" accept=".pdf,image/*" class="block w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-100 dark:file:bg-blue-900 file:text-blue-700 dark:file:text-blue-300 hover:file:bg-blue-200 dark:hover:file:bg-blue-800 mb-2"/>
                             <input type="text" name="link" placeholder="Or paste external link" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 w-full">
                         </div>
 
                         <textarea name="description" placeholder="Abstract or Description" rows="3" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2"></textarea>
                     </div>
-                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"><i class="fas fa-plus"></i> Add Thesis</button>
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded"><i class="fas fa-plus"></i> Add Research</button>
                 </form>
 
                 <div class="space-y-4">
-                    {% for thesis in theses %}
+                    {% for research in researches %}
                     <div x-data="{ editing: false }" class="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700 relative shadow-sm transition-colors">
                         
                         <div x-show="!editing">
                             <div class="absolute top-4 right-4 flex gap-3">
                                 <button @click="editing = true" class="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"><i class="fas fa-pencil-alt"></i></button>
-                                <a href="{{ url_for('delete_thesis', id=thesis.id) }}" class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"><i class="fas fa-trash"></i></a>
+                                <a href="{{ url_for('delete_research', id=research.id) }}" class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"><i class="fas fa-trash"></i></a>
                             </div>
-                            <h3 class="font-bold text-xl text-gray-900 dark:text-white mb-2 pr-16">{{ thesis.title }}</h3>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ thesis.publication_date }}</p>
-                            <p class="text-gray-700 dark:text-gray-300 mb-4">{{ thesis.description }}</p>
-                            {% if thesis.link %}
-                            <a href="{{ thesis.link }}" target="_blank" class="inline-block border border-blue-500 text-blue-600 dark:text-blue-400 px-4 py-2 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30 transition">
-                                {% if '.pdf' in thesis.link %}
+                            <h3 class="font-bold text-xl text-gray-900 dark:text-white mb-2 pr-16">{{ research.title }}</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">{{ research.publication_date }}</p>
+                            <p class="text-gray-700 dark:text-gray-300 mb-4">{{ research.description }}</p>
+                            {% if research.link %}
+                            <a href="{{ research.link }}" target="_blank" class="inline-block border border-blue-500 text-blue-600 dark:text-blue-400 px-4 py-2 rounded hover:bg-blue-50 dark:hover:bg-blue-900/30 transition">
+                                {% if '.pdf' in research.link %}
                                     <i class="fas fa-file-pdf mr-2"></i>View PDF
                                 {% else %}
                                     Read Publication
@@ -556,17 +556,17 @@
                             {% endif %}
                         </div>
 
-                        <form x-show="editing" action="/edit/thesis/{{ thesis.id }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-3">
-                            <input type="text" name="title" value="{{ thesis.title }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
-                            <input type="text" name="publication_date" value="{{ thesis.publication_date }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">
+                        <form x-show="editing" action="/edit/research/{{ research.id }}" method="POST" enctype="multipart/form-data" class="flex flex-col gap-3">
+                            <input type="text" name="title" value="{{ research.title }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                            <input type="text" name="publication_date" value="{{ research.publication_date }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">
                             
                             <div class="border border-gray-200 dark:border-gray-700 rounded p-2">
-                                <label class="block text-gray-500 dark:text-gray-400 text-xs font-bold mb-1">Thesis File (PDF/Image) or Link</label>
-                                <input type="text" name="link" value="{{ thesis.link }}" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm mb-2" placeholder="External Link">
-                                <input type="file" name="thesis_pdf" accept=".pdf,image/*" class="text-xs text-gray-500 dark:text-gray-400"/>
+                                <label class="block text-gray-500 dark:text-gray-400 text-xs font-bold mb-1">Research File (PDF/Image) or Link</label>
+                                <input type="text" name="link" value="{{ research.link }}" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 text-sm mb-2" placeholder="External Link">
+                                <input type="file" name="research_pdf" accept=".pdf,image/*" class="text-xs text-gray-500 dark:text-gray-400"/>
                             </div>
 
-                            <textarea name="description" rows="3" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">{{ thesis.description }}</textarea>
+                            <textarea name="description" rows="3" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">{{ research.description }}</textarea>
                             <div class="flex justify-end gap-2">
                                 <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Save</button>
                                 <button type="button" @click="editing = false" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>

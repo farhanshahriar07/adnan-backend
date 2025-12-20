@@ -9,7 +9,7 @@ from flask_cors import CORS
 from supabase import create_client, Client
 from gotrue.errors import AuthApiError
 from dotenv import load_dotenv
-from models import db, User, About, Skill, Education, Experience, Project, Thesis, ContactMessage, Achievement
+from models import db, User, About, Skill, Education, Experience, Project, Research, ContactMessage, Achievement
 
 # Load environment variables from .env file
 load_dotenv()
@@ -188,7 +188,7 @@ def dashboard():
     education = Education.query.all()
     experience = Experience.query.all()
     projects = Project.query.all()
-    theses = Thesis.query.all()
+    researches = Research.query.all()
     achievements = Achievement.query.all() # <--- ADD THIS LINE
     
     messages = ContactMessage.query.order_by(ContactMessage.timestamp.desc()).all()
@@ -204,7 +204,7 @@ def dashboard():
     return render_template('dashboard.html', 
                            about=about, skills=skills, education=education, 
                            experience=experience, projects=projects, 
-                           theses=theses, achievements=achievements,
+                           researches=researches, achievements=achievements,
                            messages=messages,
                            unread_count=unread_count,
                            active_tab=active_tab,
@@ -434,48 +434,48 @@ def edit_project(id):
     flash('Project updated successfully!')
     return redirect(url_for('dashboard', tab='projects'))
 
-@app.route('/add/thesis', methods=['POST'])
+@app.route('/add/research', methods=['POST'])
 @login_required
-def add_thesis():
+def add_research():
     link = request.form.get('link')
 
-    if 'thesis_pdf' in request.files:
-        uploaded_link = handle_file_upload(request.files['thesis_pdf'], subfolder='thesis')
+    if 'research_pdf' in request.files:
+        uploaded_link = handle_file_upload(request.files['research_pdf'], subfolder='research')
         if uploaded_link: link = uploaded_link
 
-    new_thesis = Thesis(
+    new_research = Research(
         title=request.form['title'],
         description=request.form['description'],
         link=link,
         publication_date=request.form['publication_date']
     )
-    db.session.add(new_thesis)
+    db.session.add(new_research)
     db.session.commit()
-    return redirect(url_for('dashboard', tab='thesis'))
+    return redirect(url_for('dashboard', tab='research'))
 
-@app.route('/delete/thesis/<int:id>')
+@app.route('/delete/research/<int:id>')
 @login_required
-def delete_thesis(id):
-    Thesis.query.filter_by(id=id).delete()
+def delete_research(id):
+    Research.query.filter_by(id=id).delete()
     db.session.commit()
-    return redirect(url_for('dashboard', tab='thesis'))
+    return redirect(url_for('dashboard', tab='research'))
 
-@app.route('/edit/thesis/<int:id>', methods=['POST'])
+@app.route('/edit/research/<int:id>', methods=['POST'])
 @login_required
-def edit_thesis(id):
-    thesis = Thesis.query.get_or_404(id)
-    thesis.title = request.form['title']
-    thesis.publication_date = request.form['publication_date']
-    thesis.link = request.form['link']
-    thesis.description = request.form['description']
+def edit_research(id):
+    research = Research.query.get_or_404(id)
+    research.title = request.form['title']
+    research.publication_date = request.form['publication_date']
+    research.link = request.form['link']
+    research.description = request.form['description']
     
-    if 'thesis_pdf' in request.files:
-        uploaded_link = handle_file_upload(request.files['thesis_pdf'], subfolder='thesis')
-        if uploaded_link: thesis.link = uploaded_link
+    if 'research_pdf' in request.files:
+        uploaded_link = handle_file_upload(request.files['research_pdf'], subfolder='research')
+        if uploaded_link: research.link = uploaded_link
 
     db.session.commit()
-    flash('Thesis updated successfully!')
-    return redirect(url_for('dashboard', tab='thesis'))
+    flash('Research updated successfully!')
+    return redirect(url_for('dashboard', tab='research'))
 
 # --- ACHIEVEMENT ROUTES ---
 
@@ -539,10 +539,10 @@ def get_projects():
     projects = Project.query.all()
     return jsonify([p.to_dict() for p in projects])
 
-@app.route('/api/thesis', methods=['GET'])
-def get_thesis():
-    thesis = Thesis.query.all()
-    return jsonify([t.to_dict() for t in thesis])
+@app.route('/api/research', methods=['GET'])
+def get_research():
+    research = Research.query.all()
+    return jsonify([t.to_dict() for t in research])
 
 @app.route('/api/achievements', methods=['GET'])
 def get_achievements():
