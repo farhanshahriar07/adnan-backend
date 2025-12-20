@@ -28,7 +28,7 @@ class About(db.Model):
     # Images
     profile_image = db.Column(db.String(255))      # Main Image
     mini_profile_image = db.Column(db.String(255)) # Mini Image (New)
-    
+
     resume_link = db.Column(db.String(255)) # New Field
     
     # Social Links
@@ -53,6 +53,7 @@ class About(db.Model):
             'short_bio': self.short_bio,
             'long_bio': self.long_bio,
             'profile_image': self.profile_image,
+            'mini_profile_image': self.mini_profile_image, # <--- Added to API response
             'resume_link': self.resume_link,
             'github': self.github,
             'facebook': self.facebook,
