@@ -9,7 +9,7 @@ from flask_cors import CORS
 from supabase import create_client, Client
 from gotrue.errors import AuthApiError
 from dotenv import load_dotenv
-from models import db, User, About, Skill, Education, Experience, Project, Research, ContactMessage, Achievement
+from models import db, User, About, Skill, Education, Experience, Project, Research, ContactMessage, Achievement, Blog
 
 # Load environment variables from .env file
 load_dotenv()
@@ -190,6 +190,7 @@ def dashboard():
     projects = Project.query.all()
     researches = Research.query.all()
     achievements = Achievement.query.all() # <--- ADD THIS LINE
+    blogs = Blog.query.all()  # <--- ADD THIS LINE
     
     messages = ContactMessage.query.order_by(ContactMessage.timestamp.desc()).all()
     unread_count = ContactMessage.query.filter_by(read=False).count()
@@ -208,6 +209,7 @@ def dashboard():
                            about=about, skills=skills, education=education, 
                            experience=experience, projects=projects, 
                            researches=researches, achievements=achievements,
+                           blogs=blogs,
                            messages=messages,
                            unread_count=unread_count,
                            active_tab=active_tab,
@@ -524,6 +526,51 @@ def edit_achievement(id):
     return redirect(url_for('dashboard', tab='achievements'))
 
 
+# BLOG (New)
+@app.route('/add/blog', methods=['POST'])
+@login_required
+def add_blog():
+    cover_image = None
+    if 'cover_file' in request.files:
+        url = handle_file_upload(request.files['cover_file'], subfolder='blog')
+        if url: cover_image = url
+
+    new_blog = Blog(
+        title=request.form['title'],
+        content=request.form['content'],
+        tags=request.form['tags'],
+        date=request.form['date'],
+        cover_image=cover_image
+    )
+    db.session.add(new_blog)
+    db.session.commit()
+    return redirect(url_for('dashboard', tab='blog'))
+
+@app.route('/delete/blog/<int:id>')
+@login_required
+def delete_blog(id):
+    Blog.query.filter_by(id=id).delete()
+    db.session.commit()
+    return redirect(url_for('dashboard', tab='blog'))
+
+@app.route('/edit/blog/<int:id>', methods=['POST'])
+@login_required
+def edit_blog(id):
+    blog = Blog.query.get_or_404(id)
+    blog.title = request.form['title']
+    blog.content = request.form['content']
+    blog.tags = request.form['tags']
+    blog.date = request.form['date']
+    
+    if 'cover_file' in request.files:
+        url = handle_file_upload(request.files['cover_file'], subfolder='blog')
+        if url: blog.cover_image = url
+
+    db.session.commit()
+    flash('Blog updated successfully!')
+    return redirect(url_for('dashboard', tab='blog'))
+
+
 # --- PUBLIC API ENDPOINTS ---
 
 @app.route('/api/about', methods=['GET'])
@@ -560,6 +607,11 @@ def get_research():
 def get_achievements():
     achievements = Achievement.query.all()
     return jsonify([a.to_dict() for a in achievements])
+
+@app.route('/api/blogs', methods=['GET'])
+def get_blogs():
+    blogs = Blog.query.all()
+    return jsonify([b.to_dict() for b in blogs])
 
 @app.route('/api/contact', methods=['POST'])
 def api_contact():

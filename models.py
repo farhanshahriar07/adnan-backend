@@ -164,6 +164,25 @@ class Achievement(db.Model):
             'date': self.date,
             'link': self.link
         }
+    
+# Blog Section (New)
+class Blog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    cover_image = db.Column(db.String(255))
+    tags = db.Column(db.String(200)) # e.g. "Tech, Flask, Coding"
+    date = db.Column(db.String(50)) # e.g. "Dec 22, 2025"
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'content': self.content,
+            'cover_image': self.cover_image,
+            'tags': self.tags,
+            'date': self.date
+        }
 
 # Contact Messages
 class ContactMessage(db.Model):
