@@ -24,6 +24,9 @@ class About(db.Model):
     freelance_status = db.Column(db.String(20))
     short_bio = db.Column(db.Text)
     long_bio = db.Column(db.Text)
+    
+    # --- NEW FIELD ---
+    daily_update = db.Column(db.Text) 
 
     # Images
     profile_image = db.Column(db.String(255))      # Main Image
@@ -52,8 +55,9 @@ class About(db.Model):
             'freelance_status': self.freelance_status,
             'short_bio': self.short_bio,
             'long_bio': self.long_bio,
+            'daily_update': self.daily_update, # <--- Added to API response
             'profile_image': self.profile_image,
-            'mini_profile_image': self.mini_profile_image, # <--- Added to API response
+            'mini_profile_image': self.mini_profile_image, 
             'resume_link': self.resume_link,
             'github': self.github,
             'facebook': self.facebook,
@@ -68,14 +72,14 @@ class Skill(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     percentage = db.Column(db.Integer, nullable=False) 
-    image_url = db.Column(db.String(255)) # <--- NEW FIELD
+    image_url = db.Column(db.String(255)) 
 
     def to_dict(self):
         return {
             'id': self.id,
             'name': self.name,
             'percentage': self.percentage,
-            'image_url': self.image_url # <--- NEW FIELD
+            'image_url': self.image_url 
         }
 
 # Education Section
@@ -83,7 +87,7 @@ class Education(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     degree = db.Column(db.String(100), nullable=False)
     institution = db.Column(db.String(100), nullable=False)
-    logo_url = db.Column(db.String(255)) # <--- NEW FIELD
+    logo_url = db.Column(db.String(255)) 
     year_range = db.Column(db.String(50))
     description = db.Column(db.Text)
 
@@ -92,7 +96,7 @@ class Education(db.Model):
             'id': self.id,
             'degree': self.degree,
             'institution': self.institution,
-            'logo_url': self.logo_url, # <--- NEW FIELD
+            'logo_url': self.logo_url, 
             'year_range': self.year_range,
             'description': self.description
         }
@@ -148,13 +152,13 @@ class Research(db.Model):
             'publication_date': self.publication_date
         }
     
-# Achievements Section (New)
+# Achievements Section
 class Achievement(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    date = db.Column(db.String(50)) # e.g. "Dec 2024"
-    link = db.Column(db.String(255)) # Certificate link or news url
+    date = db.Column(db.String(50)) 
+    link = db.Column(db.String(255)) 
 
     def to_dict(self):
         return {
@@ -165,14 +169,14 @@ class Achievement(db.Model):
             'link': self.link
         }
     
-# Blog Section (New)
+# Blog Section
 class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
     cover_image = db.Column(db.String(255))
-    tags = db.Column(db.String(200)) # e.g. "Tech, Flask, Coding"
-    date = db.Column(db.String(50)) # e.g. "Dec 22, 2025"
+    tags = db.Column(db.String(200)) 
+    date = db.Column(db.String(50)) 
 
     def to_dict(self):
         return {

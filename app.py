@@ -189,8 +189,8 @@ def dashboard():
     experience = Experience.query.all()
     projects = Project.query.all()
     researches = Research.query.all()
-    achievements = Achievement.query.all() # <--- ADD THIS LINE
-    blogs = Blog.query.all()  # <--- ADD THIS LINE
+    achievements = Achievement.query.all() 
+    blogs = Blog.query.all()  
     
     messages = ContactMessage.query.order_by(ContactMessage.timestamp.desc()).all()
     unread_count = ContactMessage.query.filter_by(read=False).count()
@@ -198,7 +198,7 @@ def dashboard():
     image_history = set()
     if about:
         if about.profile_image: image_history.add(about.profile_image)
-        if about.mini_profile_image: image_history.add(about.mini_profile_image) # New
+        if about.mini_profile_image: image_history.add(about.mini_profile_image)
         
     for p in projects:
         if p.image_url: image_history.add(p.image_url)
@@ -249,6 +249,9 @@ def update_about():
     about.freelance_status = request.form.get('freelance_status')
     about.short_bio = request.form.get('short_bio')
     about.long_bio = request.form.get('long_bio')
+
+    # --- NEW FIELD HANDLING ---
+    about.daily_update = request.form.get('daily_update')
     
     # Social Links
     about.github = request.form.get('github')
@@ -274,7 +277,7 @@ def update_about():
         url = handle_file_upload(request.files['image_file'], subfolder='profile')
         if url: about.profile_image = url
 
-    # 2. Mini Profile Image (NEW)
+    # 2. Mini Profile Image 
     if request.form.get('mini_profile_image'):
         about.mini_profile_image = request.form.get('mini_profile_image')
     
@@ -526,7 +529,7 @@ def edit_achievement(id):
     return redirect(url_for('dashboard', tab='achievements'))
 
 
-# BLOG (New)
+# BLOG 
 @app.route('/add/blog', methods=['POST'])
 @login_required
 def add_blog():
