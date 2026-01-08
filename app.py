@@ -9,7 +9,7 @@ from flask_cors import CORS
 from supabase import create_client, Client
 from gotrue.errors import AuthApiError
 from dotenv import load_dotenv
-from models import db, User, About, Skill, Education, Experience, Project, Research, ContactMessage, Achievement, Blog
+from models import db, User, About, Skill, Education, Experience, Project, Research, ContactMessage, Achievement, Blog, DailyUpdate
 
 # Load environment variables from .env file
 load_dotenv()
@@ -191,6 +191,7 @@ def dashboard():
     researches = Research.query.all()
     achievements = Achievement.query.all() 
     blogs = Blog.query.all()  
+    daily_updates = DailyUpdate.query.order_by(DailyUpdate.id.desc()).all() # Added
     
     messages = ContactMessage.query.order_by(ContactMessage.timestamp.desc()).all()
     unread_count = ContactMessage.query.filter_by(read=False).count()
@@ -210,6 +211,7 @@ def dashboard():
                            experience=experience, projects=projects, 
                            researches=researches, achievements=achievements,
                            blogs=blogs,
+                           daily_updates=daily_updates,
                            messages=messages,
                            unread_count=unread_count,
                            active_tab=active_tab,
@@ -573,6 +575,37 @@ def edit_blog(id):
     flash('Blog updated successfully!')
     return redirect(url_for('dashboard', tab='blog'))
 
+# --- DAILY UPDATE ROUTES (NEW) ---
+
+@app.route('/add/daily_update', methods=['POST'])
+@login_required
+def add_daily_update():
+    new_update = DailyUpdate(
+        title=request.form['title'],
+        date=request.form['date'],
+        description=request.form['description']
+    )
+    db.session.add(new_update)
+    db.session.commit()
+    return redirect(url_for('dashboard', tab='daily_updates'))
+
+@app.route('/edit/daily_update/<int:id>', methods=['POST'])
+@login_required
+def edit_daily_update(id):
+    update = DailyUpdate.query.get_or_404(id)
+    update.title = request.form['title']
+    update.date = request.form['date']
+    update.description = request.form['description']
+    db.session.commit()
+    flash('Daily update modified successfully!')
+    return redirect(url_for('dashboard', tab='daily_updates'))
+
+@app.route('/delete/daily_update/<int:id>')
+@login_required
+def delete_daily_update(id):
+    DailyUpdate.query.filter_by(id=id).delete()
+    db.session.commit()
+    return redirect(url_for('dashboard', tab='daily_updates'))
 
 # --- PUBLIC API ENDPOINTS ---
 
@@ -615,6 +648,11 @@ def get_achievements():
 def get_blogs():
     blogs = Blog.query.all()
     return jsonify([b.to_dict() for b in blogs])
+
+@app.route('/api/daily_updates', methods=['GET'])
+def get_daily_updates():
+    updates = DailyUpdate.query.order_by(DailyUpdate.id.desc()).all()
+    return jsonify([u.to_dict() for u in updates])
 
 @app.route('/api/contact', methods=['POST'])
 def api_contact():

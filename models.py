@@ -188,6 +188,21 @@ class Blog(db.Model):
             'date': self.date
         }
 
+# Daily Updates Section (NEW)
+class DailyUpdate(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    date = db.Column(db.String(50))
+    description = db.Column(db.Text)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'date': self.date,
+            'description': self.description
+        }
+
 # Contact Messages
 class ContactMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)

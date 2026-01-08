@@ -67,6 +67,7 @@
                     ('education', 'fa-graduation-cap', 'Education'),
                     ('experience', 'fa-briefcase', 'Experience'),
                     ('projects', 'fa-project-diagram', 'Projects'),
+                    ('daily_updates', 'fa-calendar-day', 'Daily Updates'),
                     ('achievements', 'fa-trophy', 'Achievements'),
                     ('research', 'fa-book', 'Research'),
                     ('blog', 'fa-newspaper', 'Blog')
@@ -103,6 +104,7 @@
                     <option value="education">Education</option>
                     <option value="experience">Experience</option>
                     <option value="projects">Projects</option>
+                    <option value="daily_updates">Daily Updates</option>
                     <option value="achievements">Achievements</option>
                     <option value="research">Research</option>
                     <option value="blog">Blog</option>
@@ -207,7 +209,7 @@
                     </div>
                     
                     <div class="mb-6">
-                        <label class="block text-gray-600 dark:text-gray-400 text-sm font-bold mb-2">Daily Update</label>
+                        <label class="block text-gray-600 dark:text-gray-400 text-sm font-bold mb-2">Daily Update (Status)</label>
                         <textarea name="daily_update" rows="2" class="w-full bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors" placeholder="What are you working on today?">{{ about.daily_update or '' if about else '' }}</textarea>
                     </div>
 
@@ -428,6 +430,48 @@
                                 <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded text-sm">Save</button>
                                 <button type="button" @click="editing = false" class="bg-gray-500 text-white px-3 py-1 rounded text-sm">Cancel</button>
                              </div>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div x-show="currentTab === 'daily_updates'" x-cloak>
+                 <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-white border-b border-gray-300 dark:border-gray-700 pb-2">Daily Updates</h2>
+                 
+                 <form action="{{ url_for('add_daily_update') }}" method="POST" class="bg-white dark:bg-gray-800 p-6 rounded-lg mb-6 shadow-sm dark:shadow-md transition-colors">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <input type="text" name="title" placeholder="Update Title (e.g. Completed Backend)" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                        <input type="text" name="date" placeholder="Date (e.g. Jan 08, 2026)" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                        <textarea name="description" placeholder="What did you do today?" rows="3" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2 md:col-span-2"></textarea>
+                    </div>
+                    <button type="submit" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-6 rounded"><i class="fas fa-plus"></i> Add Update</button>
+                </form>
+
+                <div class="space-y-4">
+                    {% for update in daily_updates %}
+                    <div x-data="{ editing: false }" class="bg-white dark:bg-gray-800 p-4 rounded-lg border-l-4 border-orange-500 shadow-sm transition-colors">
+                        <div x-show="!editing" class="flex justify-between items-start">
+                            <div>
+                                <h3 class="font-bold text-lg text-gray-900 dark:text-white">{{ update.title }}</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2"><i class="far fa-clock mr-1"></i> {{ update.date }}</p>
+                                <p class="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{{ update.description }}</p>
+                            </div>
+                            <div class="flex flex-col gap-2 pl-4">
+                                <button @click="editing = true" class="text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"><i class="fas fa-pencil-alt"></i></button>
+                                <a href="{{ url_for('delete_daily_update', id=update.id) }}" class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300" onclick="return confirm('Delete this update?')"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </div>
+                        <form x-show="editing" action="/edit/daily_update/{{ update.id }}" method="POST" class="flex flex-col gap-2">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <input type="text" name="title" value="{{ update.title }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                                <input type="text" name="date" value="{{ update.date }}" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2" required>
+                            </div>
+                            <textarea name="description" rows="3" class="bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded p-2">{{ update.description }}</textarea>
+                            <div class="flex justify-end gap-2">
+                                <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded text-sm">Save</button>
+                                <button type="button" @click="editing = false" class="bg-gray-500 text-white px-3 py-1 rounded text-sm">Cancel</button>
+                            </div>
                         </form>
                     </div>
                     {% endfor %}
